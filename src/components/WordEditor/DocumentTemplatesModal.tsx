@@ -143,6 +143,27 @@ export const DocumentTemplatesModal: React.FC<DocumentTemplatesModalProps> = ({
         `,
       },
     },
+    {
+      id: 'invoice',
+      title: 'فاتورة تجارية (Commercial Invoice)',
+      description: 'فاتورة احترافية تشمل البنود، الكميات، الأسعار، والإجمالي.',
+      icon: FileText,
+      color: 'from-rose-600 to-red-600',
+      badge: 'مالي',
+      state: {
+        title: 'فاتورة_مبيعات.docx',
+        fontFamily: 'Cairo, sans-serif',
+        fontSize: 12,
+        lineSpacing: 1.2,
+        contentHtml: `
+          <h1 style="text-align: center;">فاتورة</h1>
+          <table style="width:100%; border-collapse: collapse;" border="1">
+            <tr><th>المنتج</th><th>الكمية</th><th>السعر</th></tr>
+            <tr><td>منتج 1</td><td>1</td><td>100</td></tr>
+          </table>
+        `,
+      },
+    },
   ];
 
   return (

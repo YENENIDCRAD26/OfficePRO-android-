@@ -216,6 +216,7 @@ export const ExcelRibbon: React.FC<ExcelRibbonProps> = ({
   const [showFreezeMenu, setShowFreezeMenu] = useState<boolean>(false);
   const [showBordersMenu, setShowBordersMenu] = useState<boolean>(false);
   const [showClearMenu, setShowClearMenu] = useState<boolean>(false);
+  const [showExcelTemplatesMenu, setShowExcelTemplatesMenu] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -240,6 +241,40 @@ export const ExcelRibbon: React.FC<ExcelRibbonProps> = ({
     setShowFreezeMenu(false);
     setShowBordersMenu(false);
     setShowClearMenu(false);
+    setShowExcelTemplatesMenu(false);
+  };
+
+  const applyExcelTemplate = (type: 'budget' | 'tasks' | 'attendance') => {
+    if (!onUpdateSheet) return;
+    handleCloseAllDropdowns();
+
+    if (type === 'budget') {
+      onUpdateSheet({
+        name: 'ميزانية شهرية',
+        data: {
+          'A1': { value: 'البند', bold: true, bg: '#f1f5f9', borderStyle: 'all' },
+          'B1': { value: 'المبلغ المتوقع', bold: true, bg: '#f1f5f9', borderStyle: 'all' },
+          'A2': { value: 'إيجار' },
+          'B2': { value: '2000', format: 'currency_sar' },
+        }
+      });
+    } else if (type === 'tasks') {
+      onUpdateSheet({
+        name: 'جدول مهام أسبوعي',
+        data: {
+          'A1': { value: 'المهمة', bold: true, bg: '#f1f5f9', borderStyle: 'all' },
+          'B1': { value: 'اليوم', bold: true, bg: '#f1f5f9', borderStyle: 'all' },
+        }
+      });
+    } else if (type === 'attendance') {
+      onUpdateSheet({
+        name: 'قائمة حضور',
+        data: {
+          'A1': { value: 'الاسم', bold: true, bg: '#f1f5f9', borderStyle: 'all' },
+          'B1': { value: 'الحالة', bold: true, bg: '#f1f5f9', borderStyle: 'all' },
+        }
+      });
+    }
   };
 
   // Extract selected row number for row height adjustments
@@ -819,6 +854,26 @@ export const ExcelRibbon: React.FC<ExcelRibbonProps> = ({
                     <Columns className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>{selectedCellData?.colSpan && selectedCellData.colSpan > 1 ? 'إلغاء الدمج' : 'دمج وتوسيط'}</span>
                   </button>
+
+                  {/* قوالب جاهزة */}
+                  <div className="relative inline-block">
+                    <button
+                      onClick={(e) => handleOpenDropdown('templates', e)}
+                      className="px-2.5 h-[32px] bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-xs font-bold text-slate-800 shadow-2xs shrink-0 flex items-center gap-1.5"
+                      title="قوالب جداول البيانات الجاهزة"
+                    >
+                      <Layout className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>قوالب جاهزة</span>
+                      <ChevronDown className="w-3 h-3 text-slate-400" />
+                    </button>
+                    {activeExcelDropdown?.id === 'templates' && (
+                      <div className="absolute right-0 top-[36px] w-48 bg-white border border-slate-200 rounded-lg shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95">
+                        <button onClick={() => applyExcelTemplate('budget')} className="block w-full text-right p-2 hover:bg-slate-100 rounded text-xs font-semibold">ميزانية شهرية</button>
+                        <button onClick={() => applyExcelTemplate('tasks')} className="block w-full text-right p-2 hover:bg-slate-100 rounded text-xs font-semibold">جدول مهام أسبوعي</button>
+                        <button onClick={() => applyExcelTemplate('attendance')} className="block w-full text-right p-2 hover:bg-slate-100 rounded text-xs font-semibold">قائمة حضور</button>
+                      </div>
+                    )}
+                  </div>
 
                   {/* اتجاه النص RTL / LTR */}
                   <button

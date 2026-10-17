@@ -2276,41 +2276,33 @@ export const WordRibbon: React.FC<WordRibbonProps> = ({
                 </button>
 
                 {showTablePicker && (
-                  <div className="absolute top-full mt-1.5 right-0 bg-white p-3 rounded-xl shadow-2xl border border-slate-300 z-[100] w-56 space-y-2 ring-1 ring-black/5 animate-in fade-in slide-in-from-top-1">
-                    <div className="font-bold text-slate-700 text-xs border-b pb-1">
-                      تحديد أبعاد الجدول:
+                  <div className="absolute top-full mt-1.5 right-0 bg-white p-2 rounded-lg shadow-2xl border border-slate-300 z-[100] w-48 animate-in fade-in slide-in-from-top-1">
+                    <div className="font-bold text-slate-700 text-xs pb-1 border-b mb-2">إدراج جدول:</div>
+                    <div className="grid gap-1">
+                      {Array.from({ length: 8 }).map((_, r) => (
+                        <div key={r} className="flex gap-1">
+                          {Array.from({ length: 10 }).map((_, c) => (
+                            <div
+                              key={c}
+                              className={`w-4 h-4 border border-slate-300 rounded-xs cursor-pointer ${
+                                r <= (tableRows - 1) && c <= (tableCols - 1) ? 'bg-blue-500' : 'bg-slate-50 hover:bg-blue-200'
+                              }`}
+                              onMouseEnter={() => {
+                                setTableRows(r + 1);
+                                setTableCols(c + 1);
+                              }}
+                              onClick={() => {
+                                onInsertTable(r + 1, c + 1);
+                                setShowTablePicker(false);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span>عدد الصفوف:</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={tableRows}
-                        onChange={(e) => setTableRows(parseInt(e.target.value) || 1)}
-                        className="w-16 border rounded px-1.5 py-0.5 text-center"
-                      />
+                    <div className="text-center text-[10px] text-slate-500 mt-2 font-bold">
+                      {tableRows} × {tableCols}
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span>عدد الأعمدة:</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={10}
-                        value={tableCols}
-                        onChange={(e) => setTableCols(parseInt(e.target.value) || 1)}
-                        className="w-16 border rounded px-1.5 py-0.5 text-center"
-                      />
-                    </div>
-                    <button
-                      onClick={() => {
-                        onInsertTable(tableRows, tableCols);
-                        setShowTablePicker(false);
-                      }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1 rounded text-xs font-bold transition"
-                    >
-                      إدراج الجدول ({tableRows} × {tableCols})
-                    </button>
                   </div>
                 )}
               </div>

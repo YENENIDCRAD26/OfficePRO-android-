@@ -1179,15 +1179,18 @@ export default function App() {
 
   // Insert table into Word document
   const handleInsertTable = (rows: number, cols: number) => {
-    let tableHtml = '<table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1px solid #94a3b8;"><thead><tr style="background-color: #f1f5f9;">';
+    let tableHtml = `<table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-family: 'Cairo', sans-serif; font-size: 14px; border: 2px solid #334155;">
+      <thead>
+        <tr style="background-color: #1e293b; color: #ffffff;">`;
     for (let c = 1; c <= cols; c++) {
-      tableHtml += `<th style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; text-align: right;">العمود ${c}</th>`;
+      tableHtml += `<th style="border: 1px solid #475569; padding: 10px; font-weight: bold; text-align: right;">العمود ${c}</th>`;
     }
-    tableHtml += '</tr></thead><tbody>';
+    tableHtml += `</tr></thead>
+      <tbody>`;
     for (let r = 1; r <= rows; r++) {
-      tableHtml += '<tr>';
+      tableHtml += '<tr style="background-color: #ffffff;">';
       for (let c = 1; c <= cols; c++) {
-        tableHtml += `<td style="border: 1px solid #cbd5e1; padding: 8px;">بيان ${r}-${c}</td>`;
+        tableHtml += `<td style="border: 1px solid #cbd5e1; padding: 10px; color: #334155;">&nbsp;</td>`;
       }
       tableHtml += '</tr>';
     }

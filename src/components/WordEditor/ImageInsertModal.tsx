@@ -17,6 +17,7 @@ export const ImageInsertModal: React.FC<ImageInsertModalProps> = ({
   const [alignment, setAlignment] = useState<'right' | 'center' | 'left'>('center');
   const [wrapMode, setWrapMode] = useState<'inline' | 'float-right' | 'float-left' | 'in-front' | 'behind'>('inline');
   const [rotation, setRotation] = useState<number>(0);
+  const [crop, setCrop] = useState<'none' | '1:1' | '16:9'>('none');
   const [frameStyle, setFrameStyle] = useState<string>('none');
   const [imageEffect, setImageEffect] = useState<string>('none');
   
@@ -41,7 +42,13 @@ export const ImageInsertModal: React.FC<ImageInsertModalProps> = ({
   const handleInsert = () => {
     if (!imageSrc) return;
 
-    let style = `width: ${imageWidthCm}cm; max-width: 100%; height: auto; cursor: pointer; transition: all 0.2s;`;
+    let style = `width: ${imageWidthCm}cm; max-width: 100%; height: ${crop === 'none' ? 'auto' : '180px'}; cursor: pointer; transition: all 0.2s;`;
+    
+    if (crop !== 'none') {
+      style += ` object-fit: cover;`;
+      if (crop === '1:1') style += ` aspect-ratio: 1/1;`;
+      else if (crop === '16:9') style += ` aspect-ratio: 16/9;`;
+    }
     
     if (rotation !== 0) {
       style += ` transform: rotate(${rotation}deg);`;
@@ -227,6 +234,24 @@ export const ImageInsertModal: React.FC<ImageInsertModalProps> = ({
                       </button>
                     ))}
                   </div>
+                </div>
+              </div>
+              
+              {/* Crop Aspect Ratio */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 block">قص الصورة (Crop Aspect Ratio):</label>
+                <div className="flex gap-2">
+                  {(['none', '1:1', '16:9'] as const).map((ratio) => (
+                    <button
+                      key={ratio}
+                      onClick={() => setCrop(ratio)}
+                      className={`flex-1 py-1.5 rounded-lg border font-bold text-[10px] transition ${
+                        crop === ratio ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-blue-50'
+                      }`}
+                    >
+                      {ratio === 'none' ? 'بلا قص' : ratio}
+                    </button>
+                  ))}
                 </div>
               </div>
 
