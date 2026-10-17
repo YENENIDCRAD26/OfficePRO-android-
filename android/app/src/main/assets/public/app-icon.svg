@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Linear Gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+
+    <!-- Word Tile Gradient -->
+    <linearGradient id="wordGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2b579a"/>
+      <stop offset="50%" stop-color="#185abd"/>
+      <stop offset="100%" stop-color="#103f91"/>
+    </linearGradient>
+
+    <!-- Excel Tile Gradient -->
+    <linearGradient id="excelGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#217346"/>
+      <stop offset="50%" stop-color="#107c41"/>
+      <stop offset="100%" stop-color="#0b552c"/>
+    </linearGradient>
+
+    <!-- Paper Gradient with slight 3D fold reflection -->
+    <linearGradient id="paperGrad" x1="0" y1="0" x2="1" y2="0.8">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+
+    <filter id="tileShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+
+    <filter id="pageShadow" x="-15%" y="-15%" width="135%" height="135%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Canvas Background matching uploaded artwork -->
+  <rect width="512" height="512" rx="90" fill="url(#bgGrad)"/>
+
+  <!-- ================= LEFT: WORD TILE ================= -->
+  <g filter="url(#tileShadow)">
+    <!-- Word Blue Rounded Square -->
+    <rect x="44" y="116" width="200" height="280" rx="36" fill="url(#wordGrad)"/>
+    
+    <!-- Word Document Page with 3D Fold -->
+    <g filter="url(#pageShadow)">
+      <path d="M 124 160 L 216 160 Q 224 160 224 168 L 224 344 Q 224 352 216 352 L 124 352 Z" fill="#ffffff" opacity="0.95"/>
+      <!-- Word horizontal document text lines -->
+      <rect x="142" y="184" width="64" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+      <rect x="142" y="206" width="64" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+      <rect x="142" y="228" width="64" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+      <rect x="142" y="250" width="64" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+      <rect x="142" y="272" width="64" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+      <rect x="142" y="294" width="48" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+      <rect x="142" y="316" width="56" height="9" rx="4.5" fill="#185abd" opacity="0.75"/>
+
+      <!-- Front angled page panel holding 'W' -->
+      <polygon points="68,184 156,168 156,344 68,328" fill="url(#paperGrad)"/>
+      <text x="110" y="278" font-family="'Segoe UI', Roboto, 'Arial Black', sans-serif" font-weight="900" font-size="78" fill="#185abd" text-anchor="middle">W</text>
+    </g>
+  </g>
+
+  <!-- ================= RIGHT: EXCEL TILE ================= -->
+  <g filter="url(#tileShadow)">
+    <!-- Excel Green Rounded Square -->
+    <rect x="268" y="116" width="200" height="280" rx="36" fill="url(#excelGrad)"/>
+
+    <!-- Excel Document Page with Grid -->
+    <g filter="url(#pageShadow)">
+      <path d="M 348 160 L 440 160 Q 448 160 448 168 L 448 344 Q 448 352 440 352 L 348 352 Z" fill="#ffffff" opacity="0.95"/>
+      
+      <!-- Excel Grid Matrix lines -->
+      <!-- Row 1 -->
+      <rect x="364" y="184" width="30" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <rect x="400" y="184" width="34" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <!-- Row 2 -->
+      <rect x="364" y="210" width="30" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <rect x="400" y="210" width="34" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <!-- Row 3 -->
+      <rect x="364" y="236" width="30" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <rect x="400" y="236" width="34" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <!-- Row 4 -->
+      <rect x="364" y="262" width="30" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <rect x="400" y="262" width="34" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <!-- Row 5 -->
+      <rect x="364" y="288" width="30" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <rect x="400" y="288" width="34" height="20" rx="3" fill="#107c41" opacity="0.8"/>
+      <!-- Row 6 -->
+      <rect x="364" y="314" width="30" height="18" rx="3" fill="#107c41" opacity="0.8"/>
+      <rect x="400" y="314" width="34" height="18" rx="3" fill="#107c41" opacity="0.8"/>
+
+      <!-- Front angled page panel holding 'X' -->
+      <polygon points="292,184 380,168 380,344 292,328" fill="url(#paperGrad)"/>
+      <text x="334" y="278" font-family="'Segoe UI', Roboto, 'Arial Black', sans-serif" font-weight="900" font-size="78" fill="#107c41" text-anchor="middle">X</text>
+    </g>
+  </g>
+</svg>

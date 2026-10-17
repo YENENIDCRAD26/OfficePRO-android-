@@ -1,0 +1,22 @@
+{
+  "entities": {
+    "Document": {
+      "title": "Document Record",
+      "description": "User Word and Excel document records synced to Firestore",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "contentHtml": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/documents/{docId}": {
+      "schema": { "$ref": "#/entities/Document" },
+      "description": "Synced document records"
+    }
+  }
+}
