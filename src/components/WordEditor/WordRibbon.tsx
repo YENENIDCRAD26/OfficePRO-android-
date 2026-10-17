@@ -1530,6 +1530,38 @@ export const WordRibbon: React.FC<WordRibbonProps> = ({
     }
   };
 
+  // Apply Columns
+  const applyColumns = (count: number) => {
+    restoreSelection();
+    const editor = document.getElementById('word-body-editable');
+    if (!editor) return;
+    editor.focus();
+    restoreSelection();
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode)) {
+      try {
+        const range = sel.getRangeAt(0);
+        const div = document.createElement('div');
+        div.style.columnCount = count.toString();
+        div.style.columnGap = '16px';
+        div.appendChild(range.extractContents());
+        range.insertNode(div);
+        
+        const newRange = document.createRange();
+        newRange.selectNodeContents(div);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+        savedSelectionRef.current = newRange.cloneRange();
+      } catch (e) {}
+    } else {
+        editor.style.columnCount = count.toString();
+        editor.style.columnGap = '16px';
+    }
+    onUpdateDoc({ columns: count as any, contentHtml: editor.innerHTML });
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
   const applyCustomStyle = (cs: {
     fontFamily?: string;
     fontSize?: number;
@@ -3177,6 +3209,31 @@ export const WordRibbon: React.FC<WordRibbonProps> = ({
                           </div>
                           <span className="text-[9px] text-slate-500">1.27 سم من كل الجهات</span>
                         </button>
+
+                        {/* Columns Selector */}
+                        <div className="border border-slate-200 bg-slate-50/60 rounded-xl p-2.5 mb-2 space-y-1.5">
+                          <div className="text-[11px] font-bold text-slate-700 mb-1">
+                            أعمدة الصفحة (Columns):
+                          </div>
+                          <div className="flex gap-2">
+                            {[1, 2, 3].map((col) => (
+                              <button
+                                key={col}
+                                onClick={() => {
+                                  applyColumns(col);
+                                  setActiveLayoutMenu(null);
+                                }}
+                                className={`flex-1 py-1.5 rounded-lg border text-[10px] font-bold transition ${
+                                  (parseInt(docState.columnCount?.toString() || '1') === col)
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white border-slate-200 hover:bg-blue-50 text-slate-700'
+                                }`}
+                              >
+                                {col === 1 ? 'عمود 1' : `${col} أعمدة`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
                         <button
                           onClick={() => {
@@ -5714,7 +5771,7 @@ export const WordRibbon: React.FC<WordRibbonProps> = ({
                     const isSelected = (docState.fontFamily || "'Amiri', serif").includes(font.primary);
                     return (
                       <div
-                        key={font.primary}
+                        key={font.name}
                         className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                           isSelected
                             ? 'border-amber-500 bg-amber-50/40 shadow-sm ring-1 ring-amber-400'

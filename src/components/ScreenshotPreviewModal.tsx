@@ -12,7 +12,7 @@ import {
   FileImage,
   ShieldCheck
 } from 'lucide-react';
-import { downloadBlob, shareDocument } from '../utils/fileHandlers';
+import { downloadBlob, shareDocument, dataURLToBlob } from '../utils/fileHandlers';
 
 interface ScreenshotPreviewModalProps {
   isOpen: boolean;
@@ -136,13 +136,8 @@ export const ScreenshotPreviewModal: React.FC<ScreenshotPreviewModalProps> = ({
 
   const handleShare = async () => {
     try {
-      if (screenshotBlob) {
-        await shareDocument(screenshotBlob, `${baseFilename}.png`, cleanTitle);
-      } else {
-        const response = await fetch(screenshotDataUrl);
-        const blob = await response.blob();
-        await shareDocument(blob, `${baseFilename}.png`, cleanTitle);
-      }
+      const blob = screenshotBlob || dataURLToBlob(screenshotDataUrl);
+      await shareDocument(blob, `${baseFilename}.png`, cleanTitle);
     } catch (e) {
       console.warn('Share error or canceled', e);
     }
