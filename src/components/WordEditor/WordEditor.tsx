@@ -132,43 +132,48 @@ export const WordEditor: React.FC<WordEditorProps> = ({
     }
   };
 
-  // Real-time spell check highlight effect pass
+  // Real-time spell check highlight effect pass (debounced to prevent typing lag)
   useEffect(() => {
     if (!isSpellCheckActive || !editorRef.current || isUpdatingFromState.current) return;
-    const walker = document.createTreeWalker(editorRef.current, NodeFilter.SHOW_TEXT, null);
-    const textNodes: Text[] = [];
-    let n: Node | null;
-    while ((n = walker.nextNode())) {
-      if (n.nodeType === Node.TEXT_NODE && n.textContent?.trim()) {
-        if (n.parentElement && n.parentElement.tagName !== 'A' && !n.parentElement.classList.contains('spellcheck-error')) {
-          textNodes.push(n as Text);
-        }
-      }
-    }
-
-    for (const textNode of textNodes) {
-      const text = textNode.nodeValue || '';
-      const words = text.match(/[\u0600-\u06FFa-zA-Z]+/g) || [];
-      let modified = false;
-      let newHtml = text;
-
-      for (const w of words) {
-        if (w.length <= 1) continue;
-        const errors = checkTextSpelling(w);
-        if (errors.length > 0) {
-          const suggestions = errors[0].suggestions.join('|');
-          const regex = new RegExp(`\\b${w}\\b`, 'g');
-          newHtml = newHtml.replace(regex, `<span class="spellcheck-error" data-word="${w}" data-suggestions="${suggestions}" title="خطأ إملائي: انقر للاقتراحات">${w}</span>`);
-          modified = true;
+    const handler = setTimeout(() => {
+      if (!editorRef.current) return;
+      const walker = document.createTreeWalker(editorRef.current, NodeFilter.SHOW_TEXT, null);
+      const textNodes: Text[] = [];
+      let n: Node | null;
+      while ((n = walker.nextNode())) {
+        if (n.nodeType === Node.TEXT_NODE && n.textContent?.trim()) {
+          if (n.parentElement && n.parentElement.tagName !== 'A' && !n.parentElement.classList.contains('spellcheck-error')) {
+            textNodes.push(n as Text);
+          }
         }
       }
 
-      if (modified && textNode.parentNode) {
-        const span = document.createElement('span');
-        span.innerHTML = newHtml;
-        textNode.parentNode.replaceChild(span, textNode);
+      for (const textNode of textNodes) {
+        const text = textNode.nodeValue || '';
+        const words = text.match(/[\u0600-\u06FFa-zA-Z]+/g) || [];
+        let modified = false;
+        let newHtml = text;
+
+        for (const w of words) {
+          if (w.length <= 1) continue;
+          const errors = checkTextSpelling(w);
+          if (errors.length > 0) {
+            const suggestions = errors[0].suggestions.join('|');
+            const regex = new RegExp(`\\b${w}\\b`, 'g');
+            newHtml = newHtml.replace(regex, `<span class="spellcheck-error" data-word="${w}" data-suggestions="${suggestions}" title="خطأ إملائي: انقر للاقتراحات">${w}</span>`);
+            modified = true;
+          }
+        }
+
+        if (modified && textNode.parentNode) {
+          const span = document.createElement('span');
+          span.innerHTML = newHtml;
+          textNode.parentNode.replaceChild(span, textNode);
+        }
       }
-    }
+    }, 1200);
+
+    return () => clearTimeout(handler);
   }, [docState.contentHtml, isSpellCheckActive]);
 
   // Context Menu & Long Press state for mobile text selection / copy / cut / paste
@@ -1647,23 +1652,36 @@ export const WordEditor: React.FC<WordEditorProps> = ({
                       ...getBorderInlineStyles(),
                     }}
                   >
-                  {/* Authentic Page Border & Decorative Frame */}
-                  <PageBorderDecorator 
-                    docState={docState} 
-                    pageWidthCm={pageWidthCm} 
-                    pageHeightCm={pageHeightCm} 
-                    totalPages={computedTotalPages}
-                    pageNumber={pageNum}
-                  />
+                    <PageBorderDecorator 
+                      docState={docState} 
+                      pageWidthCm={pageWidthCm} 
+                      pageHeightCm={pageHeightCm} 
+                      totalPages={computedTotalPages}
+                      pageNumber={pageNum}
+                    />
 
-                  {/* Watermark */}
-                  {docState.watermarkText && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
-                      <span className="text-slate-300/40 text-7xl font-bold -rotate-45 font-serif uppercase tracking-widest">
-                        {docState.watermarkText}
-                      </span>
-                    </div>
-                  )}
+                    {/* Delete Page Button */}
+                    {unifiedPages.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeletePage?.(pageIdx);
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-white hover:bg-rose-100 text-rose-500 rounded-full shadow-sm z-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="حذف الصفحة"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {/* Watermark */}
+                    {docState.watermarkText && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+                        <span className="text-slate-300/40 text-7xl font-bold -rotate-45 font-serif uppercase tracking-widest">
+                          {docState.watermarkText}
+                        </span>
+                      </div>
+                    )}
 
                   {/* Header Area (Real-Time Header per page) */}
                   {docState.showHeader !== false && (

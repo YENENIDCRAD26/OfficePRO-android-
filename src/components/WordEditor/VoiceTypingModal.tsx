@@ -189,9 +189,24 @@ export const VoiceTypingModal: React.FC<VoiceTypingModalProps> = ({
 
           {/* Error Banner */}
           {errorMessage && (
-            <div className="bg-rose-950/80 border border-rose-700/70 text-rose-200 p-3 rounded-xl text-xs font-semibold flex items-start gap-2">
-              <span className="text-rose-400 font-bold shrink-0">⚠️ تنبيه:</span>
-              <span>{errorMessage}</span>
+            <div className="bg-rose-950/80 border border-rose-700/70 text-rose-200 p-3 rounded-xl text-xs font-semibold flex flex-col gap-2">
+              <div className="flex items-start gap-2">
+                <span className="text-rose-400 font-bold shrink-0">⚠️ تنبيه:</span>
+                <span>{errorMessage}</span>
+              </div>
+              {errorMessage.includes('إذن الميكروفون') && (
+                <div className="flex flex-col gap-2 mt-1">
+                  <button 
+                    onClick={startListening}
+                    className="w-full bg-rose-700 hover:bg-rose-600 text-white rounded-lg py-2 font-bold transition"
+                  >
+                    إعادة محاولة الوصول للميكروفون
+                  </button>
+                  <p className="text-[10px] text-rose-300">
+                    إذا لم يظهر طلب الإذن، يرجى النقر على أيقونة "القفل" في شريط عنوان المتصفح في الأعلى، ثم تفعيل خيار الميكروفون.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

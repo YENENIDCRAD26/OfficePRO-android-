@@ -101,6 +101,16 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
 
   const zoomFactor = Math.max(0.4, Math.min(2.0, (zoom || 100) / 100));
 
+  // Virtual List state for ExcelGrid performance optimization
+  const [scrollTop, setScrollTop] = useState<number>(0);
+  const avgRowHeight = Math.round(28 * zoomFactor);
+  const rows = Array.from({ length: sheet.rowCount }, (_, i) => i + 1);
+  const cols = Array.from({ length: sheet.colCount }, (_, i) => colIndexToLetter(i));
+  const visibleStartIndex = Math.max(0, Math.floor(scrollTop / avgRowHeight) - 4);
+  const visibleEndIndex = Math.min(rows.length, visibleStartIndex + 45);
+  const topSpacerHeight = visibleStartIndex * avgRowHeight;
+  const bottomSpacerHeight = (rows.length - visibleEndIndex) * avgRowHeight;
+
   const getColBaseWidth = (col: string): number => {
     if (sheet.colWidths && sheet.colWidths[col]) {
       return sheet.colWidths[col];
@@ -413,9 +423,6 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
     }
   }, [isEditing]);
 
-  const rows = Array.from({ length: sheet.rowCount }, (_, i) => i + 1);
-  const cols = Array.from({ length: sheet.colCount }, (_, i) => colIndexToLetter(i));
-
   // Handle keyboard navigation between cells
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isEditing) {
@@ -619,7 +626,10 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
       </div>
 
       {/* Scrollable Spreadsheet Table */}
-      <div className="flex-1 overflow-auto bg-white relative">
+      <div 
+        onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
+        className="flex-1 overflow-auto bg-white relative"
+      >
         <table 
           className="border-collapse table-fixed min-w-full text-xs font-sans border-spacing-0"
           style={{ fontSize: `${Math.round(12 * zoomFactor)}px` }}
@@ -680,7 +690,12 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
             </tr>
           </thead>
           <tbody>
-            {rows.map((rowNum) => {
+            {topSpacerHeight > 0 && (
+              <tr style={{ height: `${topSpacerHeight}px` }}>
+                <td colSpan={cols.length + 1} style={{ border: 0, padding: 0, background: 'transparent' }} />
+              </tr>
+            )}
+            {rows.slice(visibleStartIndex, visibleEndIndex).map((rowNum) => {
               const isRowInRange = rangeBounds ? (rowNum >= rangeBounds.minRow && rowNum <= rangeBounds.maxRow) : selectedCell.endsWith(rowNum.toString());
               const rowHeight = Math.round(getRowBaseHeight(rowNum) * zoomFactor);
               const isRowResizing = resizingRow?.row === rowNum;
@@ -976,6 +991,11 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
                 </tr>
               );
             })}
+            {bottomSpacerHeight > 0 && (
+              <tr style={{ height: `${bottomSpacerHeight}px` }}>
+                <td colSpan={cols.length + 1} style={{ border: 0, padding: 0, background: 'transparent' }} />
+              </tr>
+            )}
           </tbody>
         </table>
 

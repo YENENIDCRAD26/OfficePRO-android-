@@ -243,6 +243,32 @@ export default function App() {
     wordTarget: 'body'
   });
 
+  // Reference to Word ContentEditable Div
+  const wordEditorRef = useRef<HTMLDivElement | null>(null);
+
+  // Active Excel Sheet
+  const currentSheet = excelState.sheets.find((s) => s.id === excelState.activeSheetId) || excelState.sheets[0];
+
+  const handleOpenPrintPreview = () => {
+    setIsPrintPreviewOpen(true);
+  };
+
+  const handleExportPdf = async (options?: PdfExportOptions, customFilename?: string) => {
+    if (mode === 'word') {
+      await exportWordAsPdf(wordState, options || { pdfStandard: 'standard' }, customFilename || wordState.title || 'مستند.pdf');
+    } else {
+      await exportExcelAsPdf(excelState.title, currentSheet, options, customFilename);
+    }
+  };
+
+  const handleExportPdfWithOptions = async (options: PdfExportOptions, customFilename: string) => {
+    if (mode === 'word') {
+      await exportWordAsPdf(wordState, options, customFilename);
+    } else {
+      await exportExcelAsPdf(excelState.title, currentSheet, options, customFilename);
+    }
+  };
+
   const getActiveWordTargetElement = (): { element: HTMLElement | null; type: 'body' | 'header' | 'footer' } => {
     const activeEl = document.activeElement as HTMLElement | null;
     if (activeEl?.id === 'word-header-editable' || activeEl?.closest('[data-word-target="header"]')) {
@@ -370,63 +396,7 @@ export default function App() {
       setSyncStatus(success ? 'synced' : 'offline');
     }, 30000);
     return () => clearInterval(interval);
-  }, [wordState.title, wordState.contentHtml]);
-
-  const handleOpenPrintPreview = () => {
-    setIsPrintPreviewOpen(true);
-  };
-
-  // PDF Export Handler with Page Settings (Margins, Orientation, Paper Size)
-  const handleExportPdf = async (options?: PdfExportOptions, customFilename?: string) => {
-    if (mode === 'word') {
-      await exportWordAsPdf(wordState, options || { pdfStandard: 'standard' }, customFilename || wordState.title || 'مستند.pdf');
-    } else {
-      await exportExcelAsPdf(excelState.title, currentSheet, options, customFilename);
-    }
-  };
-
-  const handleExportPdfWithOptions = async (options: PdfExportOptions, customFilename: string) => {
-    if (mode === 'word') {
-      await exportWordAsPdf(wordState, options, customFilename);
-    } else {
-      await exportExcelAsPdf(excelState.title, currentSheet, options, customFilename);
-    }
-  };
-
-  // Reference to Word ContentEditable Div
-  const wordEditorRef = useRef<HTMLDivElement | null>(null);
-
-  // Active Excel Sheet
-  const currentSheet = excelState.sheets.find((s) => s.id === excelState.activeSheetId) || excelState.sheets[0];
-
-  // Sync formula input when selected cell changes
-  useEffect(() => {
-    const cell = currentSheet?.data[selectedCell];
-    if (cell) {
-      setFormulaInput(cell.formula || cell.value || '');
-      setInlineCellValue(cell.formula || cell.value || '');
-    } else {
-      setFormulaInput('');
-      setInlineCellValue('');
-    }
-    setIsCellEditing(false);
-  }, [selectedCell, currentSheet]);
-
-  // Persist Word state to localStorage
-  useEffect(() => {
-    localStorage.setItem('office_word_state', JSON.stringify(wordState));
-    setLastSavedText('محفوظ الآن ✓');
-    const timer = setTimeout(() => setLastSavedText('محفوظ تلقائياً'), 3000);
-    return () => clearTimeout(timer);
-  }, [wordState]);
-
-  // Persist Excel state to localStorage
-  useEffect(() => {
-    localStorage.setItem('office_excel_state', JSON.stringify(excelState));
-    setLastSavedText('محفوظ الآن ✓');
-    const timer = setTimeout(() => setLastSavedText('محفوظ تلقائياً'), 3000);
-    return () => clearTimeout(timer);
-  }, [excelState]);
+  }, [wordState.title]);
 
   // Auto-hide native mobile software keyboard when the app virtual keyboard is active/chosen
   useEffect(() => {
@@ -477,7 +447,7 @@ export default function App() {
       };
 
       document.addEventListener('focusin', handleFocusIn, true);
-      document.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
+      document.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
 
       return () => {
         document.removeEventListener('focusin', handleFocusIn, true);
@@ -512,7 +482,7 @@ export default function App() {
       } catch (e) {
         console.warn('Auto-save to localStorage failed', e);
       }
-    }, 1200);
+    }, 1500);
     return () => clearTimeout(timer);
   }, [wordState, excelState]);
 
@@ -555,24 +525,11 @@ export default function App() {
 
     const headerEl = document.querySelector('[data-header-area="true"] [contenteditable="true"]') as HTMLElement | null;
     const footerEl = document.querySelector('[data-footer-area="true"] [contenteditable="true"]') as HTMLElement | null;
-    const bodyPages = document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]');
-    let fullBodyHtml: string | null = null;
-    if (bodyPages.length > 0) {
-      if (bodyPages.length === 1) {
-        fullBodyHtml = bodyPages[0].innerHTML;
-      } else {
-        const chunks: string[] = [];
-        bodyPages.forEach(p => chunks.push(p.innerHTML));
-        fullBodyHtml = chunks.join('<div class="word-page-break" contenteditable="false" data-page-break="true"></div>');
-      }
-    } else {
-      const bodyEl = document.getElementById('word-body-editable') as HTMLElement | null;
-      if (bodyEl) fullBodyHtml = bodyEl.innerHTML;
-    }
+    const bodyEl = document.getElementById('word-body-editable') as HTMLElement | null;
 
     setWordState((prev) => ({
       ...prev,
-      contentHtml: fullBodyHtml !== null ? fullBodyHtml : prev.contentHtml,
+      contentHtml: bodyEl ? bodyEl.innerHTML : prev.contentHtml,
       headerText: headerEl ? headerEl.innerText : prev.headerText,
       footerText: footerEl ? footerEl.innerText : prev.footerText,
       ...(command === 'bold' ? { isBold: document.queryCommandState('bold') } : {}),
@@ -584,26 +541,40 @@ export default function App() {
   // Quick Save (حفظ يدوي فوري مع إشعار نجاح وحفظ الإعدادات الافتراضية)
   const handleQuickSave = useCallback(async () => {
     try {
-      localStorage.setItem('office_word_state', JSON.stringify(wordState));
+      const bodyEl = document.getElementById('word-body-editable') || wordEditorRef.current;
+      const currentHtml = bodyEl ? bodyEl.innerHTML : wordState.contentHtml;
+      const headerEl = document.querySelector('[data-header-area="true"] [contenteditable="true"]') as HTMLElement | null;
+      const footerEl = document.querySelector('[data-footer-area="true"] [contenteditable="true"]') as HTMLElement | null;
+
+      const syncedWordState = {
+        ...wordState,
+        contentHtml: currentHtml,
+        headerText: headerEl ? headerEl.innerText : wordState.headerText,
+        footerText: footerEl ? footerEl.innerText : wordState.footerText,
+      };
+
+      setWordState(syncedWordState);
+
+      localStorage.setItem('office_word_state', JSON.stringify(syncedWordState));
       localStorage.setItem('office_excel_state', JSON.stringify(excelState));
 
       // Save default document settings for last saved document
       if (mode === 'word') {
         const defaultSettings = {
-          orientation: wordState.orientation,
-          paperSize: wordState.paperSize,
-          margins: wordState.margins,
-          customMargins: wordState.customMargins,
-          fontFamily: wordState.fontFamily,
-          fontSize: wordState.fontSize,
-          lineSpacing: wordState.lineSpacing,
-          pageBgColor: wordState.pageBgColor,
-          borderStyle: wordState.borderStyle,
-          showBorders: wordState.showBorders,
-          showHeader: wordState.showHeader,
-          showFooter: wordState.showFooter,
-          headerText: wordState.headerText,
-          footerText: wordState.footerText,
+          orientation: syncedWordState.orientation,
+          paperSize: syncedWordState.paperSize,
+          margins: syncedWordState.margins,
+          customMargins: syncedWordState.customMargins,
+          fontFamily: syncedWordState.fontFamily,
+          fontSize: syncedWordState.fontSize,
+          lineSpacing: syncedWordState.lineSpacing,
+          pageBgColor: syncedWordState.pageBgColor,
+          borderStyle: syncedWordState.borderStyle,
+          showBorders: syncedWordState.showBorders,
+          showHeader: syncedWordState.showHeader,
+          showFooter: syncedWordState.showFooter,
+          headerText: syncedWordState.headerText,
+          footerText: syncedWordState.footerText,
         };
         localStorage.setItem('office_default_document_settings', JSON.stringify(defaultSettings));
       }
@@ -612,11 +583,11 @@ export default function App() {
       try {
         const isWord = mode === 'word';
         const docId = Date.now().toString();
-        const cleanTitle = isWord ? wordState.title : excelState.title;
+        const cleanTitle = isWord ? syncedWordState.title : excelState.title;
         
         // Save to Firestore
         if (isWord) {
-            await saveDocumentToFirestore(docId, cleanTitle, wordState.contentHtml);
+            await saveDocumentToFirestore(docId, cleanTitle, syncedWordState.contentHtml);
         }
 
         const baseName = cleanTitle.replace(/\.[^/.]+$/, '');
@@ -631,7 +602,7 @@ export default function App() {
           format: ext,
           mode,
           updatedAt: new Date().toISOString(),
-          wordState: isWord ? { ...wordState, title: fullTitle } : undefined,
+          wordState: isWord ? { ...syncedWordState, title: fullTitle } : undefined,
           excelState: !isWord ? { ...excelState, title: fullTitle } : undefined,
         };
         const filtered = localDocs.filter((d: any) => d.title !== fullTitle && d.name !== baseName);
@@ -648,7 +619,7 @@ export default function App() {
     } catch (e) {
       setLastSavedText('تعذر الحفظ في الذاكرة');
     }
-  }, [wordState, excelState, mode]);
+  }, [wordState, excelState, mode, showToast]);
 
   // Update Word State partial
   const handleUpdateWordState = (partial: Partial<WordDocumentState>) => {
@@ -1937,10 +1908,10 @@ export default function App() {
             contentHtml: html || prev.contentHtml,
           }));
         }
-        setLastSavedText(`تم استيراد ومعاينة ملف PDF (${file.name}) بنجاح ✓`);
-        setTimeout(() => setLastSavedText('محفوظ تلقائياً'), 2500);
+        setLastSavedText(`تم استيراد وتحويل ملف PDF (${file.name}) إلى نص قابل للتحرير بنجاح 📄✨`);
+        setTimeout(() => setLastSavedText('محفوظ تلقائياً'), 3000);
       };
-      reader.readAsBinaryString ? reader.readAsBinaryString(file) : reader.readAsText(file);
+      reader.readAsText(file);
     } else {
       setMode('word');
       const reader = new FileReader();
@@ -2030,6 +2001,21 @@ export default function App() {
     const pages = calculateUnifiedDocumentPages(wordState.contentHtml || '', unifiedWordMetrics);
     return Math.max(1, pages.length);
   }, [wordState.contentHtml, unifiedWordMetrics]);
+
+  const handleDeletePage = (pageIdx: number) => {
+    if (confirm('هل أنت متأكد من رغبتك في حذف هذه الصفحة؟')) {
+      const pages = calculateUnifiedDocumentPages(wordState.contentHtml, unifiedWordMetrics);
+      if (pages.length <= 1) {
+          handleUpdateWordState({ contentHtml: '<p></p>' });
+          return;
+      }
+      const newPages = pages.filter((_, idx) => idx !== pageIdx);
+      const newContentHtml = newPages.join('<div class="word-page-break" contenteditable="false" data-page-break="true"></div>');
+      handleUpdateWordState({ contentHtml: newContentHtml });
+      setLastSavedText('تم حذف الصفحة بنجاح 🗑️');
+      setTimeout(() => setLastSavedText('محفوظ تلقائياً'), 2000);
+    }
+  };
 
   return (
     <div className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors ${isDarkMode ? 'bg-[#0f172a] text-slate-100 dark' : 'bg-slate-100 text-slate-900'}`} dir="rtl">
@@ -2126,6 +2112,7 @@ export default function App() {
             onInsertLine={handleInsertLine}
             onAddNewPage={handleAddNewPage}
             onInsertPageBreak={() => handleAddNewPage('cursor')}
+            onDeletePage={handleDeletePage}
             onInsertLink={handleInsertLink}
             onOpenSimulator={() => setIsSimulatorOpen(true)}
             onOpenTemplates={() => setIsTemplatesModalOpen(true)}

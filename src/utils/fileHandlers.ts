@@ -1522,7 +1522,7 @@ export async function generateWordPdfBlob(
     pageContainer.style.left = '0';
     pageContainer.style.top = '0';
     pageContainer.style.zIndex = '-9999';
-    pageContainer.style.opacity = '0.01';
+    pageContainer.style.opacity = '1';
     pageContainer.style.pointerEvents = 'none';
     pageContainer.style.width = `${widthPx}px`;
     pageContainer.style.height = `${heightPx}px`;
@@ -1733,7 +1733,7 @@ export async function generateExcelPdfBlob(
     container.style.left = '0';
     container.style.top = '0';
     container.style.zIndex = '-9999';
-    container.style.opacity = '0.01'; // Visible to layout engine so font shaping & HarfBuzz runs!
+    container.style.opacity = '1';
     container.style.pointerEvents = 'none';
     container.style.width = `${baseWidthPx}px`;
     container.style.minHeight = `${Math.round(heightMm * 3.7795)}px`;

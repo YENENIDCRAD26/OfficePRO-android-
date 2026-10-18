@@ -181,11 +181,36 @@ async function startServer() {
       if (!text || typeof text !== 'string') {
         return res.status(400).json({ error: 'النص مطلوب للتدقيق اللغوي' });
       }
-      const result = await proofreadWithGemini(text);
-      res.json(result);
+      
+      const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+      if (!apiKey) {
+        return res.json(ruleBasedArabicProofread(text));
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = `أنت خبير لغوي عربي دقيق. قم بتدقيق النص التالي إملائياً ونحوياً.
+أعد النص المصحح والتعليقات بالتنسيق JSON فقط:
+{"correctedText": "النص بعد التصحيح", "corrections": [{"original": "الخطأ", "suggestion": "التصحيح", "type": "spelling|grammar", "explanation": "شرح مبسط"}]}
+النص:
+${text}`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: { responseMimeType: 'application/json' }
+      });
+      
+      const result = JSON.parse(response.text || '{}');
+      res.json({
+        originalText: text,
+        correctedText: result.correctedText || text,
+        corrections: result.corrections || [],
+        source: 'gemini'
+      });
     } catch (err: any) {
       console.error('Proofread API error:', err);
-      res.status(500).json({ error: err.message || 'فشل التدقيق اللغوي' });
+      // Fallback to rule-based
+      res.json(ruleBasedArabicProofread(text));
     }
   });
 
