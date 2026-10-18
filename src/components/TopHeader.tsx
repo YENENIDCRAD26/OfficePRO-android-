@@ -520,6 +520,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     {isKeyboardOpen ? 'مفعل' : 'إخفاء'}
                   </span>
                 </button>
+                <button
+                  onClick={onExportPdf}
+                  className="w-full text-right px-3 py-1.5 hover:bg-rose-50 flex items-center justify-between text-slate-800 hover:text-rose-800 transition font-bold"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <FileDown className="w-3.5 h-3.5 text-rose-600" />
+                    <span>تصدير إلى PDF (مع الإعدادات)</span>
+                  </div>
+                  <span className="text-[10px] bg-rose-100 text-rose-800 px-1 py-0.2 rounded font-mono">PDF</span>
+                </button>
                 {onOpenPermissionsModal && (
                   <button
                     onClick={onOpenPermissionsModal}

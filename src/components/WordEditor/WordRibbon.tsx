@@ -135,6 +135,7 @@ interface WordRibbonProps {
   onShareDocument?: () => void;
   onOpenPermissionsModal?: () => void;
   onOpenVoiceTyping?: () => void;
+  onFormatPainter?: () => void;
 }
 
 export interface WordFontFamilyItem {

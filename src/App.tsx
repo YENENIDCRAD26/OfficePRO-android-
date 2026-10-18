@@ -451,7 +451,7 @@ export default function App() {
 
       return () => {
         document.removeEventListener('focusin', handleFocusIn, true);
-        document.removeEventListener('touchstart', handleTouchStart, true);
+        document.removeEventListener('touchstart', handleTouchStart, { capture: true });
       };
     } else {
       // Restore native keyboard capabilities
