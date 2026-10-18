@@ -95,8 +95,8 @@ export const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-5 py-2.5 bg-slate-950/60 border-b border-slate-800/80 text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 bg-slate-950/60 border-b border-slate-800/80 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-slate-300">
             {mode === 'word' ? (
               <span className="flex items-center gap-1.5 text-blue-400 font-mono">
                 <FileText className="w-3.5 h-3.5" /> HTML5 / Rich Text Source
@@ -106,10 +106,29 @@ export const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
                 <Database className="w-3.5 h-3.5" /> JSON Spreadsheet Schema
               </span>
             )}
-            {error && <span className="text-red-400 font-medium mr-3">{error}</span>}
+            {error && <span className="text-red-400 font-medium">{error}</span>}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/api/download-app"
+              download="office-pro-project.zip"
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-bold transition shadow-xs cursor-pointer"
+              title="تحميل مجلد التطبيق بالكامل كملف ZIP"
+            >
+              <span>📦 تحميل مجلد التطبيق (.zip)</span>
+            </a>
+
+            <a
+              href="https://github.com/YENENIDCRAD26/OfficePRO.git"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
+              title="زيارة مستودع المشروع على GitHub"
+            >
+              <span>🔗 مستودع GitHub</span>
+            </a>
+
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"

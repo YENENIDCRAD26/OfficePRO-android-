@@ -255,6 +255,41 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
   const [isScreenshotPreviewOpen, setIsScreenshotPreviewOpen] = useState(false);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [screenshotToast, setScreenshotToast] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [isPreGenerating, setIsPreGenerating] = useState(false);
+
+  // Pre-generate PDF for sharing
+  useEffect(() => {
+    async function generatePdf() {
+      setIsPreGenerating(true);
+      try {
+        const options: PdfExportOptions = {
+          orientation,
+          margins: (marginPresetId === 'custom' ? 'normal' : marginPresetId) as any,
+          paperSize: (paperSizeId.toLowerCase() as any),
+          includeHeaderFooter: showHeader || showFooter,
+          excelFitMode,
+          showGridlines,
+          repeatHeaderRow,
+          multiPageLayout,
+        };
+        let blob: Blob;
+        if (mode === 'word' && wordState) {
+          blob = await generateWordPdfBlob(wordState, options);
+        } else if (activeSheet) {
+          blob = await generateExcelPdfBlob(excelTitle, activeSheet, options);
+        } else {
+          return;
+        }
+        setPdfBlob(blob);
+      } catch (e) {
+        console.error('Failed to pre-generate PDF', e);
+      } finally {
+        setIsPreGenerating(false);
+      }
+    }
+    generatePdf();
+  }, [mode, wordState, activeSheet, excelTitle, orientation, marginPresetId, paperSizeId, showHeader, showFooter, excelFitMode, showGridlines, repeatHeaderRow, multiPageLayout]);
 
   // Storage Location & Folder Selection states (تحديد واختيار مجلد الحفظ في وحدة التخزين أو SD)
   const [storageType, setStorageType] = useState<'internal' | 'sd'>(() => {
@@ -523,34 +558,15 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
 
   // Direct PDF Share Action (واتساب، بلوتوث، لوحة مشاركة أندرويد)
   const handleSharePdfNow = async () => {
-    setIsExporting(true);
-    handleApplyToDocument();
+    if (!pdfBlob) return;
     try {
-      const options: PdfExportOptions = {
-        orientation,
-        margins: (marginPresetId === 'custom' ? 'normal' : marginPresetId) as any,
-        paperSize: (paperSizeId.toLowerCase() as any),
-        includeHeaderFooter: showHeader || showFooter,
-        excelFitMode,
-        showGridlines,
-        repeatHeaderRow,
-        multiPageLayout,
-      };
       const title = (mode === 'word' ? (wordState?.title || 'مستند') : excelTitle).replace(/\.[^/.]+$/, '');
       const filename = `${title}_معاينة_طباعة.pdf`;
-      let blob: Blob;
-      if (mode === 'word' && wordState) {
-        blob = await generateWordPdfBlob(wordState, options);
-      } else {
-        blob = await generateExcelPdfBlob(excelTitle, activeSheet, options);
-      }
-      await shareDocument(blob, filename, `مشاركة مستند PDF: ${filename}`);
+      await shareDocument(pdfBlob, filename, `مشاركة مستند PDF: ${filename}`);
     } catch (e: any) {
       if (e?.name !== 'AbortError') {
         console.error('Share PDF error:', e);
       }
-    } finally {
-      setIsExporting(false);
     }
   };
 

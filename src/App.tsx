@@ -555,11 +555,24 @@ export default function App() {
 
     const headerEl = document.querySelector('[data-header-area="true"] [contenteditable="true"]') as HTMLElement | null;
     const footerEl = document.querySelector('[data-footer-area="true"] [contenteditable="true"]') as HTMLElement | null;
-    const bodyEl = document.getElementById('word-body-editable') as HTMLElement | null;
+    const bodyPages = document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]');
+    let fullBodyHtml: string | null = null;
+    if (bodyPages.length > 0) {
+      if (bodyPages.length === 1) {
+        fullBodyHtml = bodyPages[0].innerHTML;
+      } else {
+        const chunks: string[] = [];
+        bodyPages.forEach(p => chunks.push(p.innerHTML));
+        fullBodyHtml = chunks.join('<div class="word-page-break" contenteditable="false" data-page-break="true"></div>');
+      }
+    } else {
+      const bodyEl = document.getElementById('word-body-editable') as HTMLElement | null;
+      if (bodyEl) fullBodyHtml = bodyEl.innerHTML;
+    }
 
     setWordState((prev) => ({
       ...prev,
-      contentHtml: bodyEl ? bodyEl.innerHTML : prev.contentHtml,
+      contentHtml: fullBodyHtml !== null ? fullBodyHtml : prev.contentHtml,
       headerText: headerEl ? headerEl.innerText : prev.headerText,
       footerText: footerEl ? footerEl.innerText : prev.footerText,
       ...(command === 'bold' ? { isBold: document.queryCommandState('bold') } : {}),

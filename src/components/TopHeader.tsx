@@ -670,25 +670,34 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 {/* Merged Direct App & Source Downloads */}
                 <div className="border-t border-slate-200 mt-1 pt-1 space-y-1">
                   <div className="px-3 py-0.5 font-bold text-slate-400 text-[10px] uppercase tracking-wider">
-                    تحميل الحزم والتطبيقات
+                    تحميل الحزم ومستودع الكود
                   </div>
                   <a
                     id="header-download-apk-btn"
                     href="https://github.com/YENENIDCRAD26/word-xlsx-mazen-docx/releases/download/apk-latest/Word-Excel-Suite.apk"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full text-right px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-between rounded transition text-xs font-bold shadow-xs"
+                    className="w-full text-right px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-between rounded transition text-xs font-bold shadow-xs cursor-pointer"
                   >
                     <span>📱 تحميل تطبيق الأندرويد (.apk)</span>
                     <span className="text-[10px] bg-white text-emerald-800 px-1.5 py-0.5 rounded font-mono font-black">APK</span>
                   </a>
                   <a
                     href="/api/download-app"
-                    download="word-excel-pro-app.zip"
-                    className="w-full text-right px-3 py-1.5 bg-slate-100 hover:bg-slate-200 flex items-center justify-between text-slate-800 transition text-xs font-semibold rounded"
+                    download="office-pro-project.zip"
+                    className="w-full text-right px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-between transition text-xs font-bold rounded shadow-xs cursor-pointer"
                   >
-                    <span>📦 تحميل حزمة الكود كاملة (.zip)</span>
-                    <span className="text-[10px] bg-slate-300 text-slate-700 px-1.5 py-0.5 rounded font-mono">ZIP</span>
+                    <span>📦 تحميل مجلد التطبيق كاملاً (.zip)</span>
+                    <span className="text-[10px] bg-white text-blue-800 px-1.5 py-0.5 rounded font-mono font-black">ZIP</span>
+                  </a>
+                  <a
+                    href="https://github.com/YENENIDCRAD26/OfficePRO.git"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full text-right px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-between transition text-xs font-medium rounded cursor-pointer"
+                  >
+                    <span>🔗 مستودع GitHub (OfficePRO)</span>
+                    <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded font-mono">GIT</span>
                   </a>
                 </div>
               </div>

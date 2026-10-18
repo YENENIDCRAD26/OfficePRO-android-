@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Bold,
   Italic,
@@ -42,6 +42,82 @@ import {
 } from 'lucide-react';
 import { WordDocumentState } from '../../types';
 import { WORD_FONT_FAMILIES } from './WordRibbon';
+
+export const FONT_GROUPS = [
+  {
+    category: '📜 خط النسخ الأصيل',
+    fonts: [
+      { name: 'خط النسخ الأصيل (Amiri)', shortName: 'النسخ الأصيل', value: "'Amiri', serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'نسخ طباعي (Noto Naskh)', shortName: 'النسخ الطباعي', value: "'Noto Naskh Arabic', serif", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '🖋️ خط الرقعة',
+    fonts: [
+      { name: 'خط الرقعة الأصيل (Aref Ruqaa)', shortName: 'الرقعة الأصيل', value: "'Aref Ruqaa', serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'رقعة الحبر بالقصبة (Aref Ruqaa Ink)', shortName: 'رقعة الحبر', value: "'Aref Ruqaa Ink', serif", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '🏛️ الخط الكوفي',
+    fonts: [
+      { name: 'الخط الكوفي البارز (Noto Kufi)', shortName: 'الكوفي البارز', value: "'Noto Kufi Arabic', sans-serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'الكوفي الفاطمي (Reem Kufi)', shortName: 'الكوفي الفاطمي', value: "'Reem Kufi', sans-serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'الكوفي المربع الهندسي (Reem Kufi Ink)', shortName: 'الكوفي المربع', value: "'Reem Kufi Ink', sans-serif", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '✒️ خط الثلث والمصاحف',
+    fonts: [
+      { name: 'خط الثلث والمصاحف (Amiri Quran)', shortName: 'الثلث والمصاحف', value: "'Amiri Quran', serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'شهرزاد المحقق (Scheherazade New)', shortName: 'شهرزاد المحقق', value: "'Scheherazade New', serif", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '🎨 الخط الفارسي / النستعليق',
+    fonts: [
+      { name: 'الفارسي النستعليق (Noto Nastaliq)', shortName: 'الفارسي النستعليق', value: "'Noto Nastaliq Urdu', serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'كلزار الفارسي (Gulzar)', shortName: 'كلزار الفارسي', value: "'Gulzar', serif", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '📜 الخط الديواني والزخرفي',
+    fonts: [
+      { name: 'الخط الديواني (Lateef)', shortName: 'الخط الديواني', value: "'Lateef', cursive", sample: 'أحمد عبد الوهاب' },
+      { name: 'الديواني الجلي (Rakkas)', shortName: 'الديواني الجلي', value: "'Rakkas', cursive", sample: 'أحمد عبد الوهاب' },
+      { name: 'مرحي الزخرفي (Marhey)', shortName: 'مرحي الزخرفي', value: "'Marhey', cursive", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '💻 الخطوط العصرية والحديثة',
+    fonts: [
+      { name: 'القاهرة (Cairo)', shortName: 'القاهرة (Cairo)', value: "'Cairo', sans-serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'تجوال (Tajawal)', shortName: 'تجوال (Tajawal)', value: "'Tajawal', sans-serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'المراعي (Almarai)', shortName: 'المراعي (Almarai)', value: "'Almarai', sans-serif", sample: 'أحمد عبد الوهاب' },
+      { name: 'المسيري (El Messiri)', shortName: 'المسيري (El Messiri)', value: "'El Messiri', sans-serif", sample: 'أحمد عبد الوهاب' },
+    ]
+  },
+  {
+    category: '🌐 الخطوط اللاتينية',
+    fonts: [
+      { name: 'Arial', shortName: 'Arial', value: "Arial, sans-serif", sample: 'Office Pro 2026' },
+      { name: 'Times New Roman', shortName: 'Times New Roman', value: "'Times New Roman', serif", sample: 'Office Pro 2026' },
+    ]
+  }
+];
+
+export const getFontDisplayName = (val?: string) => {
+  if (!val) return 'النسخ الأصيل (Amiri)';
+  for (const group of FONT_GROUPS) {
+    for (const f of group.fonts) {
+      const primaryKey = f.value.split(',')[0].replace(/['"]/g, '');
+      if (val.includes(primaryKey) || f.value === val) {
+        return f.shortName;
+      }
+    }
+  }
+  return 'النسخ الأصيل';
+};
 
 interface WordHomeTabProps {
   docState: WordDocumentState;
@@ -121,16 +197,65 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
     return ['#0f172a', '#1e3a8a', '#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#475569'];
   });
 
-  // Track selection in document
+  // Font Family state & scopes
+  const [fontScope, setFontScope] = useState<'selected' | 'paragraph' | 'wholeDoc'>('selected');
+  const [fontSearchQuery, setFontSearchQuery] = useState<string>('');
+
+  const filteredFontGroups = useMemo(() => {
+    if (!fontSearchQuery.trim()) return FONT_GROUPS;
+    const q = fontSearchQuery.trim().toLowerCase();
+    return FONT_GROUPS.map((g) => ({
+      ...g,
+      fonts: g.fonts.filter(
+        (f) =>
+          f.name.toLowerCase().includes(q) ||
+          f.shortName.toLowerCase().includes(q) ||
+          g.category.toLowerCase().includes(q)
+      ),
+    })).filter((g) => g.fonts.length > 0);
+  }, [fontSearchQuery]);
+
+  // Hovered font for live typographic preview on the actual page
+  const [hoveredFont, setHoveredFont] = useState<string | null>(null);
+
+  const handleFontHover = (familyValue: string) => {
+    setHoveredFont(familyValue);
+    const allEditors = document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]');
+    allEditors.forEach((ed) => {
+      ed.style.fontFamily = familyValue;
+    });
+  };
+
+  const handleFontHoverEnd = () => {
+    setHoveredFont(null);
+    const allEditors = document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]');
+    allEditors.forEach((ed) => {
+      ed.style.fontFamily = docState.fontFamily || "'Amiri', serif";
+    });
+  };
+
+  const handleFontSelect = (familyValue: string) => {
+    setHoveredFont(null);
+    applyFontFamily(familyValue, fontScope);
+    setActiveDropdown(null);
+  };
+
+  // Track selection in document across any page
   const savedSelectionRef = useRef<Range | null>(null);
+
+  const isInsideEditor = (node: Node | null) => {
+    if (!node) return false;
+    const el = node.nodeType === 1 ? (node as HTMLElement) : node.parentElement;
+    return Boolean(el?.closest('[data-doc-editor="true"]') || el?.closest('[data-word-target]'));
+  };
 
   useEffect(() => {
     const handleSelectionChange = () => {
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
-        const editor = document.getElementById('word-body-editable');
-        if (editor && editor.contains(sel.anchorNode)) {
-          savedSelectionRef.current = sel.getRangeAt(0).cloneRange();
+        const range = sel.getRangeAt(0);
+        if (isInsideEditor(range.commonAncestorContainer)) {
+          savedSelectionRef.current = range.cloneRange();
         }
       }
     };
@@ -142,24 +267,33 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
-      const editor = document.getElementById('word-body-editable');
-      if (editor && editor.contains(range.commonAncestorContainer)) {
+      if (isInsideEditor(range.commonAncestorContainer)) {
         savedSelectionRef.current = range.cloneRange();
       }
     }
   };
 
   const restoreSelection = () => {
-    const editor = document.getElementById('word-body-editable');
-    if (savedSelectionRef.current) {
-      const sel = window.getSelection();
-      if (sel) {
+    const sel = window.getSelection();
+    if (savedSelectionRef.current && sel) {
+      try {
         sel.removeAllRanges();
         sel.addRange(savedSelectionRef.current);
-      }
-    } else if (editor) {
-      editor.focus();
+        const container = savedSelectionRef.current.commonAncestorContainer;
+        const targetEl = container.nodeType === 1 ? (container as HTMLElement) : container.parentElement;
+        targetEl?.focus();
+        return;
+      } catch (e) {}
     }
+    const defaultEditor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
+    defaultEditor?.focus();
+  };
+
+  const handleBtnMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    saveCurrentSelection();
   };
 
   // Close dropdown on outside click without blocking user clicks
@@ -171,10 +305,13 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         return;
       }
       setActiveDropdown(null);
+      if (hoveredFont) {
+        handleFontHoverEnd();
+      }
     };
     document.addEventListener('pointerdown', handlePointerDown);
     return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [activeDropdown]);
+  }, [activeDropdown, hoveredFont]);
 
   // Open / Toggle dropdown with calculated fixed coordinates
   const toggleDropdown = (id: ActiveDropdownType, e: React.MouseEvent<HTMLElement>) => {
@@ -187,27 +324,60 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       return;
     }
 
+    // Auto-detect font scope if text is selected
+    if (id === 'fontFamily') {
+      const sel = window.getSelection();
+      const hasSel = (sel && sel.rangeCount > 0 && !sel.isCollapsed) || (savedSelectionRef.current && !savedSelectionRef.current.collapsed);
+      if (!hasSel) {
+        setFontScope('wholeDoc');
+      }
+    }
+
     const rect = e.currentTarget.getBoundingClientRect();
     const top = rect.bottom + 6;
     let right = window.innerWidth - rect.right;
+    if (right + 250 > window.innerWidth) {
+      right = Math.max(8, window.innerWidth - 250);
+    }
     if (right < 8) right = 8;
     setDropdownCoords({ top, right });
     setActiveDropdown(id);
   };
 
+  // Helper to get full multi-page document HTML
+  const getFullDocHtml = () => {
+    const pages = document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]');
+    if (pages.length === 0) {
+      const single = document.getElementById('word-body-editable');
+      return single ? single.innerHTML : '';
+    }
+    if (pages.length === 1) {
+      return pages[0].innerHTML;
+    }
+    const chunks: string[] = [];
+    pages.forEach((p) => {
+      chunks.push(p.innerHTML);
+    });
+    return chunks.join('<div class="word-page-break" contenteditable="false" data-page-break="true"></div>');
+  };
+
   // Execute standard formatting
   const handleFormat = (command: string, value: string = '') => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (editor) editor.focus();
     restoreSelection();
 
-    document.execCommand('styleWithCSS', false, 'true');
-    document.execCommand(command, false, value);
+    try {
+      document.execCommand('styleWithCSS', false, 'true');
+      document.execCommand(command, false, value);
+    } catch (err) {}
     saveCurrentSelection();
 
     if (editor) {
-      onUpdateDoc({ contentHtml: editor.innerHTML });
+      onUpdateDoc({ contentHtml: getFullDocHtml() });
       editor.dispatchEvent(new Event('input', { bubbles: true }));
     }
   };
@@ -215,17 +385,19 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   // Clear all formatting
   const handleClearFormatting = () => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (editor) editor.focus();
     restoreSelection();
 
     document.execCommand('removeFormat', false);
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0 && !sel.isCollapsed && editor) {
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
       const range = sel.getRangeAt(0);
       const container = range.commonAncestorContainer;
       const parentEl = container.nodeType === 1 ? (container as HTMLElement) : container.parentElement;
-      if (parentEl && parentEl !== editor && ['SPAN', 'FONT', 'B', 'I', 'U', 'EM', 'STRONG', 'MARK'].includes(parentEl.tagName)) {
+      if (parentEl && ['SPAN', 'FONT', 'B', 'I', 'U', 'EM', 'STRONG', 'MARK'].includes(parentEl.tagName)) {
         parentEl.removeAttribute('style');
         parentEl.removeAttribute('color');
         parentEl.removeAttribute('face');
@@ -233,87 +405,112 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       }
     }
     if (editor) {
-      onUpdateDoc({ contentHtml: editor.innerHTML });
+      onUpdateDoc({ contentHtml: getFullDocHtml() });
       editor.dispatchEvent(new Event('input', { bubbles: true }));
     }
     setActiveDropdown(null);
   };
 
-  // Apply Font Family
-  const applyFontFamily = (familyValue: string, scope: 'selected' | 'paragraph' | 'wholeDoc' = 'selected') => {
-    const editor = document.getElementById('word-body-editable');
-    if (!editor) return;
-
-    editor.focus();
+  // Apply Font Family cleanly to selection, paragraph, or whole document
+  const applyFontFamily = (familyValue: string, explicitScope?: 'selected' | 'paragraph' | 'wholeDoc') => {
+    const scope = explicitScope || fontScope;
     restoreSelection();
     const sel = window.getSelection();
-    const hasSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode);
+    const effectiveRange = (sel && sel.rangeCount > 0 && !sel.isCollapsed) 
+      ? sel.getRangeAt(0) 
+      : (savedSelectionRef.current && !savedSelectionRef.current.collapsed ? savedSelectionRef.current : null);
+    const hasSelection = Boolean(effectiveRange && !effectiveRange.collapsed);
 
-    if (scope === 'wholeDoc') {
-      editor.style.fontFamily = familyValue;
-      onUpdateDoc({ fontFamily: familyValue, contentHtml: editor.innerHTML });
+    const allEditors = document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]');
+
+    if (scope === 'wholeDoc' || (!hasSelection && scope === 'selected')) {
+      // 1. Whole Document: Apply to all pages and clear inline overrides
+      allEditors.forEach((ed) => {
+        ed.style.fontFamily = familyValue;
+        const elements = ed.querySelectorAll('span, p, div, h1, h2, h3, h4, h5, h6, li, td, th');
+        elements.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          if (htmlEl.style && htmlEl.style.fontFamily) {
+            htmlEl.style.fontFamily = familyValue;
+          }
+        });
+      });
+      onUpdateDoc({ fontFamily: familyValue, contentHtml: getFullDocHtml() });
     } else if (scope === 'paragraph') {
-      let node: Node | null = sel?.anchorNode || editor;
+      // 2. Current Paragraph
+      let node: Node | null = sel?.anchorNode || (effectiveRange?.commonAncestorContainer || null);
       let targetBlock: HTMLElement | null = null;
-      while (node && node !== editor) {
-        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'DIV', 'LI', 'TD'].includes(node.nodeName)) {
+      while (node && !(node instanceof HTMLElement && node.hasAttribute('data-doc-editor'))) {
+        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'DIV', 'LI', 'TD'].includes((node as HTMLElement).tagName)) {
           targetBlock = node as HTMLElement;
           break;
         }
         node = node.parentNode;
       }
-      if (!targetBlock || targetBlock === editor) {
-        targetBlock = editor.querySelector('p, h1, h2, h3, div') as HTMLElement | null;
-      }
-      if (targetBlock && targetBlock !== editor) {
+      if (targetBlock) {
         targetBlock.style.fontFamily = familyValue;
+        targetBlock.querySelectorAll('span').forEach((s) => {
+          s.style.fontFamily = familyValue;
+        });
       } else {
-        editor.style.fontFamily = familyValue;
+        allEditors.forEach((ed) => {
+          ed.style.fontFamily = familyValue;
+        });
       }
-      onUpdateDoc({ fontFamily: familyValue, contentHtml: editor.innerHTML });
+      onUpdateDoc({ fontFamily: familyValue, contentHtml: getFullDocHtml() });
     } else {
-      if (hasSelection && sel) {
+      // 3. Selected Text
+      if (hasSelection && effectiveRange) {
         try {
-          const range = sel.getRangeAt(0);
-          if (!range.collapsed) {
-            const span = document.createElement('span');
-            span.style.fontFamily = familyValue;
-            span.appendChild(range.extractContents());
-            range.insertNode(span);
-
-            const newRange = document.createRange();
-            newRange.selectNodeContents(span);
+          if (sel) {
             sel.removeAllRanges();
-            sel.addRange(newRange);
-            savedSelectionRef.current = newRange.cloneRange();
+            sel.addRange(effectiveRange);
           }
+          const span = document.createElement('span');
+          span.style.fontFamily = familyValue;
+          span.appendChild(effectiveRange.extractContents());
+          effectiveRange.insertNode(span);
+
+          const newRange = document.createRange();
+          newRange.selectNodeContents(span);
+          sel?.removeAllRanges();
+          sel?.addRange(newRange);
+          savedSelectionRef.current = newRange.cloneRange();
         } catch (e) {
           try {
+            document.execCommand('styleWithCSS', false, 'true');
             document.execCommand('fontName', false, familyValue);
           } catch {}
         }
-        onUpdateDoc({ fontFamily: familyValue, contentHtml: editor.innerHTML });
+        onUpdateDoc({ fontFamily: familyValue, contentHtml: getFullDocHtml() });
       } else {
-        editor.style.fontFamily = familyValue;
-        onUpdateDoc({ fontFamily: familyValue, contentHtml: editor.innerHTML });
+        allEditors.forEach((ed) => {
+          ed.style.fontFamily = familyValue;
+        });
+        onUpdateDoc({ fontFamily: familyValue, contentHtml: getFullDocHtml() });
       }
     }
 
-    editor.dispatchEvent(new Event('input', { bubbles: true }));
-    setActiveDropdown(null);
+    const activeEditor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || document.getElementById('word-body-editable');
+    if (activeEditor) {
+      activeEditor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   };
 
   // Apply Font Size
   const applyFontSize = (size: number) => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
 
     editor.focus();
     restoreSelection();
     const sel = window.getSelection();
 
-    if (sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode)) {
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
       try {
         const range = sel.getRangeAt(0);
         const span = document.createElement('span');
@@ -330,10 +527,12 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         document.execCommand('fontSize', false, '4');
       }
     } else {
-      editor.style.fontSize = `${size}pt`;
+      document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]').forEach((ed) => {
+        ed.style.fontSize = `${size}pt`;
+      });
     }
 
-    onUpdateDoc({ fontSize: size, contentHtml: editor.innerHTML });
+    onUpdateDoc({ fontSize: size, contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -346,7 +545,9 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
 
   // Apply Text Color
   const applyTextColor = (color: string) => {
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
 
     // Add to recent colors
@@ -358,27 +559,26 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
     editor.focus();
     restoreSelection();
     const sel = window.getSelection();
-    const hasSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode);
+    const hasSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed;
 
     if (textColorScope === 'wholeDoc') {
-      editor.style.color = color;
-      editor.querySelectorAll('*').forEach((el) => {
-        (el as HTMLElement).style.color = color;
+      document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]').forEach((ed) => {
+        ed.style.color = color;
+        ed.querySelectorAll('*').forEach((el) => {
+          (el as HTMLElement).style.color = color;
+        });
       });
     } else if (textColorScope === 'paragraph') {
       let node: Node | null = sel?.anchorNode || editor;
       let targetBlock: HTMLElement | null = null;
-      while (node && node !== editor) {
-        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'LI', 'TD'].includes(node.nodeName)) {
+      while (node && !(node instanceof HTMLElement && node.hasAttribute('data-doc-editor'))) {
+        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'LI', 'TD'].includes((node as HTMLElement).tagName)) {
           targetBlock = node as HTMLElement;
           break;
         }
         node = node.parentNode;
       }
-      if (!targetBlock || targetBlock === editor) {
-        targetBlock = editor.querySelector('p, h1, h2, h3, div') as HTMLElement | null;
-      }
-      if (targetBlock && targetBlock !== editor) {
+      if (targetBlock) {
         targetBlock.style.color = color;
         targetBlock.querySelectorAll('*').forEach((el) => {
           (el as HTMLElement).style.color = color;
@@ -409,7 +609,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
     }
 
     saveCurrentSelection();
-    onUpdateDoc({ textColor: color, contentHtml: editor.innerHTML });
+    onUpdateDoc({ textColor: color, contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -417,19 +617,21 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   // Apply Highlight Color
   const applyHighlightColor = (color: string) => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
     editor.focus();
     restoreSelection();
 
     const sel = window.getSelection();
-    const hasSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode);
+    const hasSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed;
 
     if (color === 'transparent' || !color) {
       if (hasSelection && sel) {
         document.execCommand('removeFormat', false);
       }
-      editor.querySelectorAll('mark').forEach((m) => {
+      document.querySelectorAll<HTMLElement>('[data-doc-editor="true"] mark').forEach((m) => {
         const parent = m.parentNode;
         while (m.firstChild) parent?.insertBefore(m.firstChild, m);
         parent?.removeChild(m);
@@ -455,7 +657,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       }
     }
 
-    onUpdateDoc({ highlightColor: color, contentHtml: editor.innerHTML });
+    onUpdateDoc({ highlightColor: color, contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -464,9 +666,11 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   const applyDiacritic = (char: string) => {
     restoreSelection();
     onExecCommand('insertText', char);
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (editor) {
-      onUpdateDoc({ contentHtml: editor.innerHTML });
+      onUpdateDoc({ contentHtml: getFullDocHtml() });
       editor.dispatchEvent(new Event('input', { bubbles: true }));
     }
   };
@@ -474,22 +678,26 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   // Remove All Tashkeel
   const handleRemoveAllTashkeel = () => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
 
     const sel = window.getSelection();
     const tashkeelRegex = /[\u064B-\u065F\u0670\u0640]/g;
 
-    if (sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode)) {
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
       const range = sel.getRangeAt(0);
       const text = range.toString();
       const stripped = text.replace(tashkeelRegex, '');
       document.execCommand('insertText', false, stripped);
     } else {
-      editor.innerHTML = editor.innerHTML.replace(tashkeelRegex, '');
+      document.querySelectorAll<HTMLElement>('[data-doc-editor="true"]').forEach((ed) => {
+        ed.innerHTML = ed.innerHTML.replace(tashkeelRegex, '');
+      });
     }
 
-    onUpdateDoc({ contentHtml: editor.innerHTML });
+    onUpdateDoc({ contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -497,7 +705,9 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   // Apply Paragraph Shading
   const applyParagraphShading = (color: string) => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
     editor.focus();
 
@@ -505,19 +715,19 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
     let targetBlock: HTMLElement | null = null;
     if (sel && sel.rangeCount > 0) {
       let node: Node | null = sel.anchorNode;
-      while (node && node !== editor) {
-        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'BLOCKQUOTE', 'LI', 'TD'].includes(node.nodeName)) {
+      while (node && !(node instanceof HTMLElement && node.hasAttribute('data-doc-editor'))) {
+        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'BLOCKQUOTE', 'LI', 'TD'].includes((node as HTMLElement).tagName)) {
           targetBlock = node as HTMLElement;
           break;
         }
         node = node.parentNode;
       }
     }
-    if (!targetBlock || targetBlock === editor) {
+    if (!targetBlock) {
       targetBlock = editor.querySelector('p, h1, h2, h3, div') as HTMLElement | null;
     }
 
-    if (targetBlock && targetBlock !== editor) {
+    if (targetBlock) {
       if (color === 'transparent' || !color) {
         targetBlock.style.backgroundColor = '';
         targetBlock.style.padding = '';
@@ -529,7 +739,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       }
     }
 
-    onUpdateDoc({ paragraphBgColor: color, contentHtml: editor.innerHTML });
+    onUpdateDoc({ paragraphBgColor: color, contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -537,7 +747,9 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   // Apply Paragraph Border
   const applyParagraphBorder = (borderType: 'all' | 'box' | 'bottom' | 'top' | 'right' | 'left' | 'double_bottom' | 'none') => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
     editor.focus();
 
@@ -545,19 +757,19 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
     let targetBlock: HTMLElement | null = null;
     if (sel && sel.rangeCount > 0) {
       let node: Node | null = sel.anchorNode;
-      while (node && node !== editor) {
-        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'BLOCKQUOTE', 'LI', 'TD'].includes(node.nodeName)) {
+      while (node && !(node instanceof HTMLElement && node.hasAttribute('data-doc-editor'))) {
+        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'BLOCKQUOTE', 'LI', 'TD'].includes((node as HTMLElement).tagName)) {
           targetBlock = node as HTMLElement;
           break;
         }
         node = node.parentNode;
       }
     }
-    if (!targetBlock || targetBlock === editor) {
+    if (!targetBlock) {
       targetBlock = editor.querySelector('p, h1, h2, h3, div') as HTMLElement | null;
     }
 
-    if (targetBlock && targetBlock !== editor) {
+    if (targetBlock) {
       targetBlock.style.border = '';
       targetBlock.style.borderTop = '';
       targetBlock.style.borderBottom = '';
@@ -593,7 +805,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       }
     }
 
-    onUpdateDoc({ contentHtml: editor.innerHTML });
+    onUpdateDoc({ contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -602,13 +814,15 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
   const applyAlignment = (align: 'right' | 'center' | 'left' | 'justify') => {
     restoreSelection();
     onUpdateDoc({ textAlign: align });
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     const sel = window.getSelection();
 
     if (sel && sel.rangeCount > 0 && editor) {
       let node: Node | null = sel.anchorNode;
-      while (node && node !== editor) {
-        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'BLOCKQUOTE', 'LI', 'TD'].includes(node.nodeName)) {
+      while (node && !(node instanceof HTMLElement && node.hasAttribute('data-doc-editor'))) {
+        if (node.nodeType === 1 && ['P', 'H1', 'H2', 'H3', 'H4', 'DIV', 'BLOCKQUOTE', 'LI', 'TD'].includes((node as HTMLElement).tagName)) {
           (node as HTMLElement).style.textAlign = align;
           break;
         }
@@ -616,16 +830,21 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       }
     }
     const cmd = align === 'right' ? 'justifyRight' : align === 'center' ? 'justifyCenter' : align === 'left' ? 'justifyLeft' : 'justifyFull';
-    document.execCommand(cmd, false);
+    try {
+      document.execCommand(cmd, false);
+    } catch (e) {}
     if (editor) {
-      onUpdateDoc({ textAlign: align, contentHtml: editor.innerHTML });
+      onUpdateDoc({ textAlign: align, contentHtml: getFullDocHtml() });
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
     }
   };
 
   // Apply Heading Style
   const applyHeadingStyle = (tag: 'h1' | 'h2' | 'h3' | 'p' | 'blockquote' | 'callout') => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
     editor.focus();
 
@@ -647,7 +866,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       document.execCommand('formatBlock', false, tag);
     }
 
-    onUpdateDoc({ contentHtml: editor.innerHTML });
+    onUpdateDoc({ contentHtml: getFullDocHtml() });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     setActiveDropdown(null);
   };
@@ -665,7 +884,9 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
 
   const applyTextEffect = (styleString: string) => {
     restoreSelection();
-    const editor = document.getElementById('word-body-editable');
+    const editor = (document.querySelector('[data-doc-editor="true"]:focus') as HTMLElement)
+      || (document.querySelector('[data-doc-editor="true"]') as HTMLElement)
+      || document.getElementById('word-body-editable');
     if (!editor) return;
     editor.focus();
 
@@ -735,7 +956,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Paste */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => {
             navigator.clipboard?.readText().then((clipText) => {
               if (clipText) {
@@ -757,7 +978,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Cut */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => {
             document.execCommand('cut');
           }}
@@ -770,7 +991,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Copy */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => {
             const sel = window.getSelection();
             if (sel && sel.toString()) {
@@ -814,7 +1035,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Clear All Formatting */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={handleClearFormatting}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-600 transition cursor-pointer"
           title="مسح كافة تنسيقات النص المحدد والعودة للوضع الافتراضي"
@@ -828,58 +1049,186 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       {/* ================= 2. الخط والطباعة (FONT & TYPOGRAPHY GROUP) ================= */}
       <div className="flex items-center bg-white border border-slate-300 rounded-lg h-[28px] p-0.5 shadow-2xs gap-1 shrink-0">
         
-        {/* Font Family Selector Dropdown */}
-        <div className="flex items-center gap-1 px-1">
-          <Type className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-          <select
-            value={docState.fontFamily || "'Amiri', serif"}
-            onMouseDown={saveCurrentSelection}
-            onChange={(e) => applyFontFamily(e.target.value)}
-            className="bg-transparent text-[11px] font-bold text-slate-800 focus:outline-none cursor-pointer w-[130px] truncate"
-            title="نوع الخط العربي"
+        {/* Font Family Selector Custom Trigger Button */}
+        <div className="relative inline-block px-0.5">
+          <button
+            type="button"
+            onClick={(e) => toggleDropdown('fontFamily', e)}
+            className={`home-ribbon-trigger flex items-center justify-between gap-1.5 px-2 h-[24px] rounded-md border text-[11px] font-bold transition shadow-2xs cursor-pointer ${
+              activeDropdown === 'fontFamily'
+                ? 'bg-blue-50 text-blue-800 border-blue-400 ring-1 ring-blue-300'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-300 hover:text-blue-700'
+            }`}
+            title="نوع الخط العربي واللاتيني"
           >
-            <optgroup label="📜 خط النسخ">
-              <option value="'Amiri', serif">خط النسخ الأصيل (Amiri)</option>
-              <option value="'Noto Naskh Arabic', serif">خط النسخ الطباعي (Noto)</option>
-            </optgroup>
-            <optgroup label="🖋️ خط الرقعة">
-              <option value="'Aref Ruqaa', serif">خط الرقعة الأصيل</option>
-              <option value="'Aref Ruqaa Ink', serif">رقعة الحبر بالقصبة</option>
-            </optgroup>
-            <optgroup label="🏛️ الخط الكوفي">
-              <option value="'Noto Kufi Arabic', sans-serif">الخط الكوفي البارز</option>
-              <option value="'Reem Kufi', sans-serif">الكوفي الفاطمي</option>
-            </optgroup>
-            <optgroup label="✒️ خط الثلث والمصاحف">
-              <option value="'Amiri Quran', serif">خط الثلث والمصاحف</option>
-              <option value="'Scheherazade New', serif">شهرزاد المحقق</option>
-            </optgroup>
-            <optgroup label="🎨 الخط الفارسي / النستعليق">
-              <option value="'Noto Nastaliq Urdu', serif">الفارسي النستعليق</option>
-              <option value="'Gulzar', serif">كلزار الفارسي</option>
-            </optgroup>
-            <optgroup label="📜 الخط الديواني">
-              <option value="'Lateef', cursive">الخط الديواني</option>
-              <option value="'Rakkas', cursive">الديواني الجلي</option>
-              <option value="'Marhey', cursive">مرحي الزخرفي</option>
-            </optgroup>
-            <optgroup label="💻 الخطوط العصرية">
-              <option value="'Cairo', sans-serif">القاهرة (Cairo)</option>
-              <option value="'Tajawal', sans-serif">تجوال (Tajawal)</option>
-              <option value="'Almarai', sans-serif">المراعي (Almarai)</option>
-              <option value="'El Messiri', sans-serif">المسيري (El Messiri)</option>
-            </optgroup>
-            <optgroup label="🌐 الخطوط اللاتينية">
-              <option value="Arial, sans-serif">Arial</option>
-              <option value="'Times New Roman', serif">Times New Roman</option>
-            </optgroup>
-          </select>
+            <div className="flex items-center gap-1.5 truncate max-w-[125px] sm:max-w-[145px]">
+              <Type className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span className="truncate" style={{ fontFamily: docState.fontFamily || "'Amiri', serif" }}>
+                {getFontDisplayName(docState.fontFamily)}
+              </span>
+            </div>
+            <ChevronDown className={`w-3 h-3 text-slate-400 shrink-0 transition-transform ${activeDropdown === 'fontFamily' ? 'rotate-180 text-blue-600' : ''}`} />
+          </button>
+
+          {/* Translucent Glassmorphism Dropdown Menu (بحجم أصغر وخلفية شبه شفافة تُظهر المستند وتغير الخط) */}
+          {activeDropdown === 'fontFamily' && (
+            <div
+              style={{
+                top: dropdownCoords.top,
+                right: Math.min(Math.max(8, dropdownCoords.right), Math.max(8, window.innerWidth - 245)),
+              }}
+              className="fixed z-[9999] w-[235px] max-h-[310px] flex flex-col rounded-2xl border border-white/60 bg-white/75 dark:bg-slate-900/80 backdrop-blur-md shadow-2xl text-xs home-ribbon-popover animate-in fade-in zoom-in-95 ring-1 ring-black/10 overflow-hidden"
+              onMouseLeave={handleFontHoverEnd}
+            >
+              {/* Header */}
+              <div className="px-2.5 py-1.5 border-b border-slate-200/50 bg-slate-50/60 dark:bg-slate-800/60 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-1.5">
+                  <Type className="w-3.5 h-3.5 text-blue-600" />
+                  <span className="font-bold text-slate-800 dark:text-slate-100 text-[11px]">الخطوط العربية (معاينة حية)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleFontHoverEnd();
+                    setActiveDropdown(null);
+                  }}
+                  className="p-0.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
+                  title="إغلاق القائمة"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Scope Selector: Selected text vs Paragraph vs Whole Document */}
+              <div className="p-1.5 border-b border-slate-200/50 bg-slate-100/40 dark:bg-slate-800/40 shrink-0">
+                <div className="grid grid-cols-3 gap-1 bg-white/80 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200/60 text-[9.5px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setFontScope('selected')}
+                    className={`py-0.5 rounded text-center transition cursor-pointer ${
+                      fontScope === 'selected'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-blue-700'
+                    }`}
+                  >
+                    المحدد
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFontScope('paragraph')}
+                    className={`py-0.5 rounded text-center transition cursor-pointer ${
+                      fontScope === 'paragraph'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-blue-700'
+                    }`}
+                  >
+                    الفقرة
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFontScope('wholeDoc')}
+                    className={`py-0.5 rounded text-center transition cursor-pointer ${
+                      fontScope === 'wholeDoc'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-blue-700'
+                    }`}
+                  >
+                    المستند
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Filter Search */}
+              <div className="p-1.5 border-b border-slate-200/50 bg-white/40 dark:bg-slate-900/40 shrink-0">
+                <div className="relative">
+                  <Search className="w-3 h-3 absolute right-2 top-1.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={fontSearchQuery}
+                    onChange={(e) => setFontSearchQuery(e.target.value)}
+                    placeholder="ابحث (نسخ، رقعة، كوفي...)"
+                    className="w-full pl-2 pr-6 py-0.5 text-[10.5px] bg-white/80 dark:bg-slate-800/80 border border-slate-300/70 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400"
+                  />
+                  {fontSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setFontSearchQuery('')}
+                      className="absolute left-1.5 top-1 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Scrollable List of Font Categories & Items with Live Typographic Hover Preview */}
+              <div className="flex-1 overflow-y-auto p-1 space-y-1.5 scrollbar-thin">
+                {filteredFontGroups.map((group, gIdx) => (
+                  <div key={gIdx} className="space-y-0.5">
+                    <div className="px-1.5 py-0.5 text-[9px] font-black text-slate-400 tracking-wider">
+                      {group.category}
+                    </div>
+                    {group.fonts.map((f, fIdx) => {
+                      const primaryKey = f.value.split(',')[0].replace(/['"]/g, '');
+                      const isCurrent = docState.fontFamily === f.value || docState.fontFamily?.includes(primaryKey);
+                      const isHovered = hoveredFont === f.value;
+                      return (
+                        <button
+                          key={fIdx}
+                          type="button"
+                          onMouseEnter={() => handleFontHover(f.value)}
+                          onClick={() => handleFontSelect(f.value)}
+                          className={`w-full text-right px-2 py-1 rounded-lg transition flex items-center justify-between group cursor-pointer ${
+                            isCurrent || isHovered
+                              ? 'bg-blue-600/15 text-blue-900 dark:text-blue-200 font-bold border border-blue-400/50 shadow-2xs'
+                              : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/70 text-slate-800 dark:text-slate-200'
+                          }`}
+                        >
+                          <div className="flex flex-col text-right truncate">
+                            <span className="text-[10.5px] font-bold leading-tight">{f.shortName}</span>
+                            <span
+                              className="text-[12px] text-slate-600 dark:text-slate-300 leading-tight pt-0.5"
+                              style={{ fontFamily: f.value }}
+                            >
+                              {f.sample || 'أحمد عبد الوهاب'}
+                            </span>
+                          </div>
+                          {isCurrent && (
+                            <Check className="w-3 h-3 text-blue-600 shrink-0 mr-1" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer: Quick Gallery Button */}
+              <div className="p-1 border-t border-slate-200/60 bg-slate-50/60 dark:bg-slate-800/60 flex items-center justify-between shrink-0">
+                <span className="text-[9.5px] text-slate-500 truncate max-w-[120px]">
+                  الخط: <strong className="text-blue-700">{getFontDisplayName(docState.fontFamily)}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleFontHoverEnd();
+                    setActiveDropdown(null);
+                    onOpenFontGallery?.();
+                  }}
+                  className="px-1.5 py-0.5 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[9.5px] font-bold flex items-center gap-0.5 transition cursor-pointer"
+                >
+                  <Sparkles className="w-2.5 h-2.5 text-amber-600" />
+                  <span>معرض الخطوط</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Quick Font Gallery Visual Button */}
           <button
             type="button"
             onClick={onOpenFontGallery}
-            className="px-1 py-0.5 rounded hover:bg-amber-50 text-amber-700 text-[10px] font-bold flex items-center gap-0.5 transition cursor-pointer"
+            className="px-1 py-0.5 rounded hover:bg-amber-50 text-amber-700 text-[10px] font-bold inline-flex items-center gap-0.5 transition cursor-pointer mr-1"
             title="معرض الخطوط العربية 🎨"
           >
             <Sparkles className="w-3 h-3 text-amber-500" />
@@ -893,7 +1242,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         <div className="flex items-center gap-0.5 px-0.5">
           <select
             value={docState.fontSize || 14}
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onChange={(e) => applyFontSize(Number(e.target.value))}
             className="bg-transparent text-[11px] font-bold text-slate-800 focus:outline-none cursor-pointer w-[48px] text-center"
             title="حجم الخط"
@@ -904,7 +1253,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           </select>
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => changeFontSize(2)}
             className="px-1 h-full hover:bg-slate-100 rounded text-[11px] font-black text-slate-700 transition cursor-pointer"
             title="تكبير حجم الخط (A+)"
@@ -913,7 +1262,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           </button>
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => changeFontSize(-2)}
             className="px-1 h-full hover:bg-slate-100 rounded text-[10px] font-bold text-slate-600 transition cursor-pointer"
             title="تصغير حجم الخط (A-)"
@@ -928,7 +1277,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         <div className="flex items-center gap-0.5">
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => handleFormat('bold')}
             className={`px-1.5 h-full rounded flex items-center justify-center transition cursor-pointer ${
               docState.isBold ? 'bg-blue-100 text-blue-900 ring-1 ring-blue-400 font-bold' : 'hover:bg-slate-100 text-slate-700'
@@ -939,7 +1288,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           </button>
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => handleFormat('italic')}
             className={`px-1.5 h-full rounded flex items-center justify-center transition cursor-pointer ${
               docState.isItalic ? 'bg-blue-100 text-blue-900 ring-1 ring-blue-400 font-bold' : 'hover:bg-slate-100 text-slate-700'
@@ -953,7 +1302,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           <div className="relative inline-flex items-center">
             <button
               type="button"
-              onMouseDown={saveCurrentSelection}
+              onMouseDown={handleBtnMouseDown}
               onClick={() => handleFormat('underline')}
               className={`px-1.5 h-full rounded-r flex items-center justify-center transition cursor-pointer ${
                 docState.isUnderline ? 'bg-blue-100 text-blue-900 ring-1 ring-blue-400 font-bold' : 'hover:bg-slate-100 text-slate-700'
@@ -1024,7 +1373,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           {/* Strikethrough */}
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => handleFormat('strikeThrough')}
             className="p-1 h-full hover:bg-slate-100 rounded text-slate-600 transition cursor-pointer"
             title="يتوسطه خط (Strikethrough)"
@@ -1035,7 +1384,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           {/* Subscript X2 */}
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => handleFormat('subscript')}
             className="p-1 h-full hover:bg-slate-100 rounded text-slate-600 transition cursor-pointer"
             title="منخفض (Subscript - X₂)"
@@ -1046,7 +1395,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           {/* Superscript X^2 */}
           <button
             type="button"
-            onMouseDown={saveCurrentSelection}
+            onMouseDown={handleBtnMouseDown}
             onClick={() => handleFormat('superscript')}
             className="p-1 h-full hover:bg-slate-100 rounded text-slate-600 transition cursor-pointer"
             title="مرتفع (Superscript - X²)"
@@ -1106,7 +1455,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           <div className="flex items-center h-full">
             <button
               type="button"
-              onMouseDown={saveCurrentSelection}
+              onMouseDown={handleBtnMouseDown}
               onClick={() => applyTextColor(docState.textColor || '#000000')}
               className="px-1.5 h-full flex flex-col items-center justify-center hover:bg-slate-100 rounded-r transition cursor-pointer"
               title={`تطبيق اللون الحالي (${docState.textColor || '#000000'})`}
@@ -1212,7 +1561,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
           <div className="flex items-center h-full">
             <button
               type="button"
-              onMouseDown={saveCurrentSelection}
+              onMouseDown={handleBtnMouseDown}
               onClick={() => applyHighlightColor('#fef08a')}
               className="px-1.5 h-full flex items-center gap-1 hover:bg-slate-100 rounded-r text-[11px] font-bold text-slate-700 transition cursor-pointer"
               title="تمييز النص بالأصفر"
@@ -1350,7 +1699,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Alignments */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => applyAlignment('right')}
           className={`px-1.5 h-full rounded transition cursor-pointer ${
             docState.textAlign === 'right' ? 'bg-blue-100 text-blue-900 font-bold ring-1 ring-blue-400' : 'hover:bg-slate-100 text-slate-700'
@@ -1361,7 +1710,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => applyAlignment('center')}
           className={`px-1.5 h-full rounded transition cursor-pointer ${
             docState.textAlign === 'center' ? 'bg-blue-100 text-blue-900 font-bold ring-1 ring-blue-400' : 'hover:bg-slate-100 text-slate-700'
@@ -1372,7 +1721,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => applyAlignment('left')}
           className={`px-1.5 h-full rounded transition cursor-pointer ${
             docState.textAlign === 'left' ? 'bg-blue-100 text-blue-900 font-bold ring-1 ring-blue-400' : 'hover:bg-slate-100 text-slate-700'
@@ -1383,7 +1732,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => applyAlignment('justify')}
           className={`px-1.5 h-full rounded transition cursor-pointer ${
             docState.textAlign === 'justify' ? 'bg-blue-100 text-blue-900 font-bold ring-1 ring-blue-400' : 'hover:bg-slate-100 text-slate-700'
@@ -1398,7 +1747,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Text Direction RTL / LTR */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => {
             const nextDir = docState.direction === 'ltr' ? 'rtl' : 'ltr';
             onUpdateDoc({ direction: nextDir });
@@ -1445,7 +1794,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         {/* Lists & Indents */}
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => onExecCommand('insertUnorderedList')}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-700 transition cursor-pointer"
           title="قائمة نقطية"
@@ -1454,7 +1803,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => onExecCommand('insertOrderedList')}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-700 transition cursor-pointer"
           title="قائمة رقمية"
@@ -1463,7 +1812,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => onExecCommand('outdent')}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-700 transition cursor-pointer"
           title="إنقاص المسافة البادئة"
@@ -1472,7 +1821,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => onExecCommand('indent')}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-700 transition cursor-pointer"
           title="زيادة المسافة البادئة"
@@ -1658,7 +2007,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
       <div className="flex items-center bg-white border border-slate-300 rounded-lg h-[28px] p-0.5 shadow-2xs gap-0.5 shrink-0">
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => onExecCommand('undo')}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-700 transition cursor-pointer"
           title="تراجع (Ctrl+Z)"
@@ -1667,7 +2016,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
         </button>
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => onExecCommand('redo')}
           className="p-1 h-full hover:bg-slate-100 rounded text-slate-700 transition cursor-pointer"
           title="إعادة (Ctrl+Y)"
@@ -1698,7 +2047,7 @@ export const WordHomeTab: React.FC<WordHomeTabProps> = ({
 
         <button
           type="button"
-          onMouseDown={saveCurrentSelection}
+          onMouseDown={handleBtnMouseDown}
           onClick={() => {
             const editor = document.getElementById('word-body-editable');
             if (editor) {
